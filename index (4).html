@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Funtube - FTube</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #000;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* Navbar */
+    header {
+      background: #111;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #222;
+    }
+    header h1 {
+      font-size: 1.4rem;
+      color: #ff004f; /* TikTok pink-red */
+      margin: 0;
+    }
+    header span {
+      font-size: 0.9rem;
+      color: #bbb;
+    }
+
+    /* Feed */
+    .feed {
+      flex: 1;
+      overflow-y: auto;
+      scroll-snap-type: y mandatory;
+    }
+    .reel {
+      position: relative;
+      height: 100vh;
+      scroll-snap-align: start;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #000;
+    }
+    .reel video {
+      height: 100%;
+      width: auto;
+      max-width: 100%;
+      object-fit: cover;
+    }
+
+    /* Actions (like, comment, share) */
+    .actions {
+      position: absolute;
+      right: 15px;
+      bottom: 120px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      font-size: 1.5rem;
+      text-align: center;
+    }
+    .actions button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.8rem;
+      cursor: pointer;
+    }
+
+    /* Footer / Links */
+    footer {
+      background: #111;
+      padding: 10px;
+      text-align: center;
+      font-size: 0.85rem;
+      border-top: 1px solid #222;
+    }
+    footer a {
+      color: #ff004f;
+      text-decoration: none;
+      margin: 0 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header>
+    <h1>FTube</h1>
+    <span>FunTube - Enjoy, Earn & Share</span>
+  </header>
+
+  <!-- Video Feed -->
+  <div class="feed">
+    <div class="reel">
+      <video autoplay loop muted playsinline src="https://www.w3schools.com/html/mov_bbb.mp4"></video>
+      <div class="actions">
+        <button>❤️</button>
+        <button>💬</button>
+        <button>↗️</button>
+      </div>
+    </div>
+    <div class="reel">
+      <video autoplay loop muted playsinline src="https://www.w3schools.com/html/movie.mp4"></video>
+      <div class="actions">
+        <button>❤️</button>
+        <button>💬</button>
+        <button>↗️</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer with Referral Links -->
+  <footer>
+    <p>🔥 Start Earning with FTube Partners:</p>
+    <a href="https://join.honeygain.com/ADETO9812A" target="_blank">Honeygain</a> |
+    <a href="https://www.jumptask.io/r/rimyxydyrime" target="_blank">JumpTask</a> |
+    <a href="https://www.swagbucks.com/p/register?rb=202554742&rp=1" target="_blank">SwagBucks</a> |
+    <a href="https://timebucks.com/?refID=226633453" target="_blank">TimeBucks</a> |
+    <a href="https://packetstream.io/?psr=7Lek" target="_blank">PacketStream</a> |
+    <a href="https://freecash.com/r/MEJVV" target="_blank">FreeCash</a> |
+    <a href="https://www.ysense.com/?rb=217956526" target="_blank">ySense</a>
+  </footer>
+
+  <script>
+    // Like button animation
+    document.querySelectorAll(".actions button:first-child").forEach(btn => {
+      btn.addEventListener("click", () => {
+        btn.textContent = btn.textContent === "❤️" ? "💖" : "❤️";
+      });
+    });
+  </script>
+</body>
+</html>
