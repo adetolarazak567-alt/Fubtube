@@ -1,0 +1,111 @@
+import os
+import uuid
+from flask import Blueprint, request, jsonify, current_app
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from config import Config
+from models import Base, Video, Like, Comment, View, User
+
+DATABASE_URL = Config().SQLALCHEMY_DATABASE_URI if hasattr(Config(), 'SQLALCHEMY_DATABASE_URI') else os.getenv('DATABASE_URL')
+engine = create_engine(DATABASE_URL, echo=False, future=True)
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+
+bp = Blueprint("api", __name__)
+
+# initialize DB helper (call once from app)
+def init_db():
+    Base.metadata.create_all(bind=engine)
+
+@bp.route("/reels", methods=["GET"])
+def list_reels():
+    session = SessionLocal()
+    try:
+        videos = session.query(Video).order_by(Video.created_at.desc()).limit(100).all()
+        out = []
+        for v in videos:
+            # return presigned GET URL for each video (temporary)
+            from utils import generate_presigned_get
+            url = generate_presigned_get(v.s3_key) if v.s3_key else None
+            out.append({
+                "id": v.id,
+                "title": v.title,
+                "description": v.description,
+                "url": url,
+                "views": v.views or 0
+            })
+        return jsonify(out)
+    finally:
+        session.close()
+
+@bp.route("/reels/upload-url", methods=["POST"])
+def get_upload_url():
+    # Protected route - require ADMIN_TOKEN in header
+    token = request.headers.get("X-ADMIN-TOKEN")
+    if token != Config.ADMIN_TOKEN:
+        return jsonify({"error":"unauthorized"}), 401
+
+    data = request.get_json() or {}
+    title = data.get("title","")
+    description = data.get("description","")
+    filename = data.get("filename") or f"{uuid.uuid4()}.mp4"
+    s3_key = f"videos/{filename}"
+
+    from utils import generate_presigned_put
+    put_url = generate_presigned_put(s3_key)
+    # create DB record with s3_key (video will be visible once uploaded)
+    session = SessionLocal()
+    try:
+        vid = Video(id=str(uuid.uuid4()), title=title, description=description, s3_key=s3_key)
+        session.add(vid); session.commit()
+        return jsonify({"put_url": put_url, "s3_key": s3_key, "video_id": vid.id})
+    finally:
+        session.close()
+
+@bp.route("/likes", methods=["POST"])
+def like_video():
+    data = request.get_json() or {}
+    video_id = data.get("videoId")
+    user_id = data.get("userId")
+    session = SessionLocal()
+    try:
+        like = Like(video_id=video_id, user_id=user_id)
+        session.add(like)
+        session.commit()
+        return jsonify({"ok":True})
+    finally:
+        session.close()
+
+@bp.route("/comments", methods=["POST"])
+def post_comment():
+    data = request.get_json() or {}
+    video_id = data.get("videoId")
+    text = data.get("text")
+    user_id = data.get("userId")
+    session = SessionLocal()
+    try:
+        c = Comment(video_id=video_id, user_id=user_id, text=text)
+        session.add(c)
+        session.commit()
+        return jsonify({"ok":True, "comment_id": c.id})
+    finally:
+        session.close()
+
+@bp.route("/views", methods=["POST"])
+def record_view():
+    data = request.get_json() or {}
+    video_id = data.get("videoId")
+    user_id = data.get("userId")
+    bytes_served = data.get("bytes")
+    duration = data.get("duration")
+    session = SessionLocal()
+    try:
+        v = View(video_id=video_id, user_id=user_id, bytes=bytes_served, duration=duration)
+        session.add(v)
+        # optionally increment counter
+        vid = session.query(Video).filter(Video.id==video_id).first()
+        if vid:
+            vid.views = (vid.views or 0) + 1
+        session.commit()
+        return jsonify({"ok":True})
+    finally:
+        session.close()
