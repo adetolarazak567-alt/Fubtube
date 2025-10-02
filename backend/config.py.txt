@@ -1,0 +1,18 @@
+import os
+
+class Config:
+    # Render / Heroku style DATABASE_URL
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///funtube.db")
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    # AWS S3 config
+    AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
+    S3_BUCKET = os.getenv("S3_BUCKET", "")
+    AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", "")
+    AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "")
+
+    # Admin upload token (keep secret)
+    ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "change-me")
+
+    # Presigned URL expiry (seconds)
+    PRESIGNED_EXPIRY = int(os.getenv("PRESIGNED_EXPIRY", "900"))
