@@ -1,0 +1,30 @@
+import boto3
+from botocore.client import Config as BotoConfig
+from config import Config
+
+def s3_client():
+    return boto3.client(
+        "s3",
+        region_name=Config.AWS_REGION,
+        aws_access_key_id=Config.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=Config.AWS_SECRET_ACCESS_KEY,
+        config=BotoConfig(signature_version="s3v4")
+    )
+
+def generate_presigned_put(key, expiry=Config.PRESIGNED_EXPIRY):
+    s3 = s3_client()
+    url = s3.generate_presigned_url(
+        "put_object",
+        Params={"Bucket": Config.S3_BUCKET, "Key": key, "ACL": "public-read", "ContentType":"video/mp4"},
+        ExpiresIn=expiry
+    )
+    return url
+
+def generate_presigned_get(key, expiry=Config.PRESIGNED_EXPIRY):
+    s3 = s3_client()
+    url = s3.generate_presigned_url(
+        "get_object",
+        Params={"Bucket": Config.S3_BUCKET, "Key": key},
+        ExpiresIn=expiry
+    )
+    return url
