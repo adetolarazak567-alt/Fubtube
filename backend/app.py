@@ -1,3 +1,4 @@
+import os
 from flask import Flask, jsonify
 from config import Config
 from routes import bp, init_db
@@ -13,7 +14,7 @@ init_db()
 
 @app.route("/")
 def home():
-    return jsonify({"message":"FunTube backend running"})
+    return jsonify({"message": "FunTube backend running"})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(__import__('os').env.get('PORT', 5000)))
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
