@@ -1,30 +1,41 @@
 import boto3
-from botocore.client import Config as BotoConfig
+from botocore.exceptions import ClientError
 from config import Config
 
-def s3_client():
-    return boto3.client(
-        "s3",
-        region_name=Config.AWS_REGION,
-        aws_access_key_id=Config.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=Config.AWS_SECRET_ACCESS_KEY,
-        config=BotoConfig(signature_version="s3v4")
-    )
+def generate_presigned_put(s3_key: str):
+    """Generate a presigned URL to upload a file to S3"""
+    try:
+        s3 = boto3.client(
+            "s3",
+            region_name=Config.AWS_REGION,
+            aws_access_key_id=Config.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=Config.AWS_SECRET_ACCESS_KEY,
+        )
+        url = s3.generate_presigned_url(
+            "put_object",
+            Params={"Bucket": Config.S3_BUCKET, "Key": s3_key},
+            ExpiresIn=Config.PRESIGNED_EXPIRY
+        )
+        return url
+    except ClientError as e:
+        print(e)
+        return None
 
-def generate_presigned_put(key, expiry=Config.PRESIGNED_EXPIRY):
-    s3 = s3_client()
-    url = s3.generate_presigned_url(
-        "put_object",
-        Params={"Bucket": Config.S3_BUCKET, "Key": key, "ACL": "public-read", "ContentType":"video/mp4"},
-        ExpiresIn=expiry
-    )
-    return url
-
-def generate_presigned_get(key, expiry=Config.PRESIGNED_EXPIRY):
-    s3 = s3_client()
-    url = s3.generate_presigned_url(
-        "get_object",
-        Params={"Bucket": Config.S3_BUCKET, "Key": key},
-        ExpiresIn=expiry
-    )
-    return url
+def generate_presigned_get(s3_key: str):
+    """Generate a presigned URL to download a file from S3"""
+    try:
+        s3 = boto3.client(
+            "s3",
+            region_name=Config.AWS_REGION,
+            aws_access_key_id=Config.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=Config.AWS_SECRET_ACCESS_KEY,
+        )
+        url = s3.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": Config.S3_BUCKET, "Key": s3_key},
+            ExpiresIn=Config.PRESIGNED_EXPIRY
+        )
+        return url
+    except ClientError as e:
+        print(e)
+        return None
