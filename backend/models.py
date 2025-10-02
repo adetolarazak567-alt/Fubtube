@@ -1,44 +1,45 @@
-from sqlalchemy import Column, String, Integer, Text, DateTime, Boolean, ForeignKey
+import datetime
+import uuid
+from sqlalchemy import Column, String, Integer, Text, DateTime, ForeignKey
 from sqlalchemy.orm import declarative_base, relationship
-from sqlalchemy.sql import func
 
 Base = declarative_base()
 
 class User(Base):
     __tablename__ = "users"
-    id = Column(String, primary_key=True)   # you can use UUID strings
-    username = Column(String, unique=True, index=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    username = Column(String, unique=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 class Video(Base):
     __tablename__ = "videos"
-    id = Column(String, primary_key=True)  # generate UUID client or server
-    title = Column(String)
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    title = Column(String, nullable=False)
     description = Column(Text)
-    s3_key = Column(String, nullable=False)   # key in S3
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    s3_key = Column(String, nullable=True)
     views = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 class Like(Base):
     __tablename__ = "likes"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    video_id = Column(String, ForeignKey("videos.id", ondelete="CASCADE"))
-    user_id = Column(String, ForeignKey("users.id"), nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    video_id = Column(String, ForeignKey("videos.id"))
+    user_id = Column(String, ForeignKey("users.id"))
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 class Comment(Base):
     __tablename__ = "comments"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    video_id = Column(String, ForeignKey("videos.id", ondelete="CASCADE"))
-    user_id = Column(String, nullable=True)
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    video_id = Column(String, ForeignKey("videos.id"))
+    user_id = Column(String, ForeignKey("users.id"))
     text = Column(Text)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 class View(Base):
     __tablename__ = "views"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    video_id = Column(String, ForeignKey("videos.id", ondelete="CASCADE"))
-    user_id = Column(String, nullable=True)
-    bytes = Column(Integer, nullable=True)
-    duration = Column(Integer, nullable=True)  # seconds watched
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    video_id = Column(String, ForeignKey("videos.id"))
+    user_id = Column(String, ForeignKey("users.id"), nullable=True)
+    bytes = Column(Integer, default=0)
+    duration = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.datetime.utcuuid
